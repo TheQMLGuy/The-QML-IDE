@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QML IDE - Quantum Machine Learning</title>
+    <meta name="description" content="Unified Quantum Machine Learning IDE with Jupyter notebook-style interface for AI and Quantum computing">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CodeMirror -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/material-darker.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app" class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <span class="logo-icon">⚛️</span>
+                    <span class="logo-text">QML IDE</span>
+                </div>
+                <!-- Mode Toggle -->
+                <div class="mode-toggle">
+                    <button id="aiModeBtn" class="mode-btn active" data-mode="ai">
+                        <span class="mode-icon">🤖</span>
+                        <span class="mode-label">AI Mode</span>
+                    </button>
+                    <button id="quantumModeBtn" class="mode-btn" data-mode="quantum">
+                        <span class="mode-icon">⚛️</span>
+                        <span class="mode-label">Quantum Mode</span>
+                    </button>
+                </div>
+            </div>
+            <div class="header-center">
+                <div id="runtimeStatus" class="runtime-status loading">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Loading Python Runtime...</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="runAllBtn" class="action-btn primary" title="Run All Cells (Shift+Enter)">
+                    <span class="btn-icon">▶▶</span>
+                    <span class="btn-text">Run All</span>
+                </button>
+                <button id="addCellBtn" class="action-btn" title="Add Cell">
+                    <span class="btn-icon">➕</span>
+                </button>
+                <button id="saveBtn" class="action-btn" title="Save Notebook">
+                    <span class="btn-icon">💾</span>
+                </button>
+                <button id="loadBtn" class="action-btn" title="Load Notebook">
+                    <span class="btn-icon">📂</span>
+                </button>
+                <input type="file" id="loadInput" accept=".json" hidden>
+                <button id="themeToggle" class="action-btn" title="Toggle Theme">
+                    <span class="btn-icon" id="themeIcon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Notebook Panel -->
+            <section class="notebook-panel">
+                <div class="notebook-container" id="notebookContainer">
+                    <!-- Cells will be dynamically added here -->
+                </div>
+                <button class="add-cell-inline" id="addCellInline">
+                    <span>+ Add Cell</span>
+                </button>
+            </section>
+
+            <!-- Dynamic Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <!-- AI Mode Sidebar -->
+                <div class="sidebar-content ai-sidebar" id="aiSidebar">
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">🧠</span>
+                            Network Architecture
+                        </h3>
+                        <div class="network-preview" id="networkPreview">
+                            <canvas id="networkCanvas" width="280" height="200"></canvas>
+                        </div>
+                        <div class="layer-controls">
+                            <label>Hidden Layers:</label>
+                            <div class="layer-input-group">
+                                <input type="text" id="layerConfig" placeholder="e.g., 64, 32, 16" value="64, 32">
+                                <button id="applyLayers" class="btn-small">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">⚙️</span>
+                            Training Controls
+                        </h3>
+                        <div class="control-group">
+                            <label>Learning Rate:</label>
+                            <input type="range" id="learningRate" min="0.0001" max="0.1" step="0.0001" value="0.01">
+                            <span class="control-value" id="lrValue">0.01</span>
+                        </div>
+                        <div class="control-group">
+                            <label>Epochs:</label>
+                            <input type="number" id="epochs" min="1" max="1000" value="100">
+                        </div>
+                        <div class="control-group">
+                            <label>Batch Size:</label>
+                            <select id="batchSize">
+                                <option value="16">16</option>
+                                <option value="32" selected>32</option>
+                                <option value="64">64</option>
+                                <option value="128">128</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">📊</span>
+                            Training Progress
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="lossChart" width="280" height="150"></canvas>
+                        </div>
+                        <div class="metrics-display">
+                            <div class="metric">
+                                <span class="metric-label">Loss:</span>
+                                <span class="metric-value" id="lossValue">-</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Accuracy:</span>
+                                <span class="metric-value" id="accuracyValue">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">📋</span>
+                            Code Snippets
+                        </h3>
+                        <div class="snippet-list">
+                            <button class="snippet-btn" data-snippet="import_torch">Import PyTorch</button>
+                            <button class="snippet-btn" data-snippet="import_sklearn">Import Sklearn</button>
+                            <button class="snippet-btn" data-snippet="mlp_model">MLP Model</button>
+                            <button class="snippet-btn" data-snippet="train_loop">Training Loop</button>
+                            <button class="snippet-btn" data-snippet="data_loader">Data Loader</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quantum Mode Sidebar -->
+                <div class="sidebar-content quantum-sidebar hidden" id="quantumSidebar">
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">🎯</span>
+                            Gate Palette
+                        </h3>
+                        <div class="gate-palette">
+                            <div class="gate-category">
+                                <span class="category-label">Single Qubit</span>
+                                <div class="gate-buttons">
+                                    <button class="gate-btn" data-gate="H" title="Hadamard Gate">H</button>
+                                    <button class="gate-btn" data-gate="X" title="Pauli-X (NOT)">X</button>
+                                    <button class="gate-btn" data-gate="Y" title="Pauli-Y">Y</button>
+                                    <button class="gate-btn" data-gate="Z" title="Pauli-Z">Z</button>
+                                    <button class="gate-btn" data-gate="S" title="S Gate (√Z)">S</button>
+                                    <button class="gate-btn" data-gate="T" title="T Gate">T</button>
+                                </div>
+                            </div>
+                            <div class="gate-category">
+                                <span class="category-label">Rotation</span>
+                                <div class="gate-buttons">
+                                    <button class="gate-btn parametric" data-gate="RX" title="Rotation X">Rx</button>
+                                    <button class="gate-btn parametric" data-gate="RY" title="Rotation Y">Ry</button>
+                                    <button class="gate-btn parametric" data-gate="RZ" title="Rotation Z">Rz</button>
+                                </div>
+                            </div>
+                            <div class="gate-category">
+                                <span class="category-label">Multi-Qubit</span>
+                                <div class="gate-buttons">
+                                    <button class="gate-btn multi" data-gate="CNOT" title="Controlled-NOT">CX</button>
+                                    <button class="gate-btn multi" data-gate="CZ" title="Controlled-Z">CZ</button>
+                                    <button class="gate-btn multi" data-gate="SWAP" title="SWAP">⟷</button>
+                                </div>
+                            </div>
+                            <div class="gate-category">
+                                <span class="category-label">Measure</span>
+                                <div class="gate-buttons">
+                                    <button class="gate-btn measure" data-gate="M" title="Measurement">📊</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">🔬</span>
+                            Circuit Preview
+                        </h3>
+                        <div class="circuit-preview">
+                            <div class="qubit-control">
+                                <label>Qubits:</label>
+                                <input type="number" id="qubitCount" min="1" max="10" value="3">
+                            </div>
+                            <svg id="circuitSvg" class="circuit-svg" width="280" height="120"></svg>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">🌐</span>
+                            Bloch Sphere
+                        </h3>
+                        <div class="bloch-container">
+                            <select id="qubitSelect" class="qubit-select">
+                                <option value="0">Qubit 0</option>
+                                <option value="1">Qubit 1</option>
+                                <option value="2">Qubit 2</option>
+                            </select>
+                            <canvas id="blochCanvas" width="200" height="200"></canvas>
+                        </div>
+                        <div class="qubit-state">
+                            <div class="state-label">|ψ⟩ = <span id="stateFormula">|0⟩</span></div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">📊</span>
+                            Probabilities
+                        </h3>
+                        <div id="probabilityBars" class="probability-bars">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">📋</span>
+                            Code Snippets
+                        </h3>
+                        <div class="snippet-list">
+                            <button class="snippet-btn" data-snippet="import_qiskit">Import Qiskit</button>
+                            <button class="snippet-btn" data-snippet="import_pennylane">Import PennyLane</button>
+                            <button class="snippet-btn" data-snippet="bell_state">Bell State</button>
+                            <button class="snippet-btn" data-snippet="qft">QFT Circuit</button>
+                            <button class="snippet-btn" data-snippet="vqe">VQE Template</button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Output Console (collapsible) -->
+        <div class="output-console" id="outputConsole">
+            <div class="console-header" id="consoleHeader">
+                <h3>
+                    <span class="console-icon">💻</span>
+                    Output Console
+                </h3>
+                <button class="console-toggle" id="consoleToggle">▼</button>
+            </div>
+            <div class="console-body" id="consoleBody">
+                <div id="outputArea" class="output-area"></div>
+                <button id="clearOutputBtn" class="clear-btn" title="Clear Output">Clear</button>
+            </div>
+        </div>
+
+        <!-- Parameter Modal for Rotation Gates -->
+        <div id="paramModal" class="modal hidden">
+            <div class="modal-content param-modal">
+                <div class="modal-header">
+                    <h3 id="paramModalTitle">Gate Parameters</h3>
+                    <button id="closeParamModal" class="close-btn">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="param-group">
+                        <label for="paramTheta">Angle (θ)</label>
+                        <div class="param-input-group">
+                            <input type="range" id="paramThetaSlider" min="0" max="6.283" step="0.01" value="0">
+                            <input type="number" id="paramTheta" min="0" max="6.283" step="0.01" value="0">
+                        </div>
+                        <div class="param-presets">
+                            <button class="preset-btn" data-value="0">0</button>
+                            <button class="preset-btn" data-value="1.5708">π/2</button>
+                            <button class="preset-btn" data-value="3.1416">π</button>
+                            <button class="preset-btn" data-value="4.7124">3π/2</button>
+                            <button class="preset-btn" data-value="6.2832">2π</button>
+                        </div>
+                    </div>
+                    <div class="param-group target-qubit-group hidden" id="targetQubitGroup">
+                        <label for="targetQubit">Target Qubit</label>
+                        <select id="targetQubit" class="qubit-select">
+                            <!-- Dynamically populated -->
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancelParamBtn" class="modal-btn secondary">Cancel</button>
+                    <button id="applyParamBtn" class="modal-btn primary">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    
+    <!-- Quantum Tools (from existing project) -->
+    <script src="Qiskit-Pennylane-IDE/gates.js"></script>
+    <script src="Qiskit-Pennylane-IDE/simulator.js"></script>
+    <script src="Qiskit-Pennylane-IDE/bloch-sphere.js"></script>
+    
+    <!-- AI Tools -->
+    <script src="ai-tools.js"></script>
+    
+    <!-- Quantum Tools Integration -->
+    <script src="quantum-tools.js"></script>
+    
+    <!-- Main Application -->
+    <script src="app.js"></script>
+</body>
+</html>
