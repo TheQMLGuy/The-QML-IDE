@@ -8,11 +8,14 @@
 // ===========================
 
 const AppState = {
-    mode: 'ai', // 'ai', 'quantum', or 'data'
+    mode: 'ml', // 'ml', 'dl', 'qiskit', 'pennylane', or 'data'
+    language: 'python', // 'python' or 'r'
     cells: [],
     activeCellId: null,
     pyodide: null,
     pyodideReady: false,
+    webRReady: false,
+    syncEnabled: true,
     theme: 'dark',
     cellCounter: 0
 };
@@ -457,14 +460,29 @@ async function initializeApp() {
     // Initialize Python runtime
     await initializePyodide();
 
-    // Initialize AI tools
+    // Initialize ML tools (sklearn)
+    if (typeof initializeMLTools === 'function') {
+        initializeMLTools();
+    }
+
+    // Initialize DL tools (PyTorch)
     if (typeof initializeAITools === 'function') {
         initializeAITools();
     }
 
-    // Initialize Quantum tools
-    if (typeof initializeQuantumTools === 'function') {
-        initializeQuantumTools();
+    // Initialize Qiskit tools
+    if (typeof initializeQiskitTools === 'function') {
+        initializeQiskitTools();
+    }
+
+    // Initialize PennyLane tools
+    if (typeof initializePennylaneTools === 'function') {
+        initializePennylaneTools();
+    }
+
+    // Initialize Pandas tools
+    if (typeof initializePandasTools === 'function') {
+        initializePandasTools();
     }
 
     // Initialize Data Analysis tools
@@ -522,41 +540,83 @@ async function initializePyodide() {
 // ===========================
 
 function setupModeToggle() {
-    const aiBtn = document.getElementById('aiModeBtn');
-    const quantumBtn = document.getElementById('quantumModeBtn');
+    const mlBtn = document.getElementById('mlModeBtn');
+    const dlBtn = document.getElementById('dlModeBtn');
+    const qiskitBtn = document.getElementById('qiskitModeBtn');
+    const pennylaneBtn = document.getElementById('pennylaneModeBtn');
     const dataBtn = document.getElementById('dataModeBtn');
 
-    aiBtn.addEventListener('click', () => switchMode('ai'));
-    quantumBtn.addEventListener('click', () => switchMode('quantum'));
+    mlBtn.addEventListener('click', () => switchMode('ml'));
+    dlBtn.addEventListener('click', () => switchMode('dl'));
+    qiskitBtn.addEventListener('click', () => switchMode('qiskit'));
+    pennylaneBtn.addEventListener('click', () => switchMode('pennylane'));
     dataBtn.addEventListener('click', () => switchMode('data'));
+
+    // Pandas mode
+    const pandasBtn = document.getElementById('pandasModeBtn');
+    if (pandasBtn) {
+        pandasBtn.addEventListener('click', () => switchMode('pandas'));
+    }
+
+    // Mode cycle button
+    const cycleBtn = document.getElementById('modeCycleBtn');
+    if (cycleBtn) {
+        cycleBtn.addEventListener('click', cycleMode);
+    }
+
+    // Tab key to cycle modes
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab' && !e.target.matches('input, textarea')) {
+            e.preventDefault();
+            cycleMode();
+        }
+    });
+}
+
+// Mode order for cycling
+const MODE_ORDER = ['ml', 'dl', 'qiskit', 'pennylane', 'pandas', 'data'];
+
+function cycleMode() {
+    const currentIdx = MODE_ORDER.indexOf(AppState.mode);
+    const nextIdx = (currentIdx + 1) % MODE_ORDER.length;
+    switchMode(MODE_ORDER[nextIdx]);
 }
 
 function switchMode(mode) {
     AppState.mode = mode;
 
     // Update toggle buttons
-    const aiBtn = document.getElementById('aiModeBtn');
-    const quantumBtn = document.getElementById('quantumModeBtn');
-    const dataBtn = document.getElementById('dataModeBtn');
+    const buttons = {
+        ml: document.getElementById('mlModeBtn'),
+        dl: document.getElementById('dlModeBtn'),
+        qiskit: document.getElementById('qiskitModeBtn'),
+        pennylane: document.getElementById('pennylaneModeBtn'),
+        pandas: document.getElementById('pandasModeBtn'),
+        data: document.getElementById('dataModeBtn')
+    };
 
-    aiBtn.classList.toggle('active', mode === 'ai');
-    quantumBtn.classList.toggle('active', mode === 'quantum');
-    dataBtn.classList.toggle('active', mode === 'data');
+    Object.entries(buttons).forEach(([key, btn]) => {
+        if (btn) btn.classList.toggle('active', mode === key);
+    });
 
     // Update sidebars
-    const aiSidebar = document.getElementById('aiSidebar');
-    const quantumSidebar = document.getElementById('quantumSidebar');
-    const dataSidebar = document.getElementById('dataSidebar');
+    const sidebars = {
+        ml: document.getElementById('mlSidebar'),
+        dl: document.getElementById('dlSidebar'),
+        qiskit: document.getElementById('qiskitSidebar'),
+        pennylane: document.getElementById('pennylaneSidebar'),
+        pandas: document.getElementById('pandasSidebar'),
+        data: document.getElementById('dataSidebar')
+    };
 
-    aiSidebar.classList.toggle('hidden', mode !== 'ai');
-    quantumSidebar.classList.toggle('hidden', mode !== 'quantum');
-    dataSidebar.classList.toggle('hidden', mode !== 'data');
+    Object.entries(sidebars).forEach(([key, sidebar]) => {
+        if (sidebar) sidebar.classList.toggle('hidden', mode !== key);
+    });
 
     // Update cell styling
     document.querySelectorAll('.code-cell').forEach(cell => {
-        cell.classList.remove('quantum-mode', 'data-mode');
-        if (mode === 'quantum') cell.classList.add('quantum-mode');
-        if (mode === 'data') cell.classList.add('data-mode');
+        cell.classList.remove('ml-mode', 'dl-mode', 'qiskit-mode', 'pennylane-mode', 'pandas-mode', 'data-mode');
+        cell.classList.add(`${mode}-mode`);
     });
 
     console.log(`Switched to ${mode} mode`);
@@ -568,8 +628,8 @@ function switchMode(mode) {
 
 function setupHeaderButtons() {
     document.getElementById('runAllBtn').addEventListener('click', runAllCells);
-    document.getElementById('addCellBtn').addEventListener('click', addCell);
-    document.getElementById('addCellInline').addEventListener('click', addCell);
+    document.getElementById('addCellBtn').addEventListener('click', () => addCell());
+    document.getElementById('addCellInline').addEventListener('click', () => addCell());
     document.getElementById('saveBtn').addEventListener('click', saveNotebook);
     document.getElementById('loadBtn').addEventListener('click', () => document.getElementById('loadInput').click());
     document.getElementById('loadInput').addEventListener('change', loadNotebook);
@@ -612,14 +672,17 @@ function addCell(initialCode = '') {
     const cellEl = document.createElement('div');
     cellEl.className = 'code-cell';
     cellEl.id = `cell-${cellId}`;
-    if (AppState.mode === 'quantum') {
-        cellEl.classList.add('quantum-mode');
-    } else if (AppState.mode === 'data') {
-        cellEl.classList.add('data-mode');
-    }
+    cellEl.classList.add(`${AppState.mode}-mode`);
 
-    const modeLabels = { ai: 'AI', quantum: 'Quantum', data: 'Data' };
-    const modeLabel = modeLabels[AppState.mode] || 'AI';
+    const modeLabels = {
+        ml: 'ML',
+        dl: 'DL',
+        qiskit: 'Qiskit',
+        pennylane: 'PL',
+        pandas: 'Pandas',
+        data: 'Data'
+    };
+    const modeLabel = modeLabels[AppState.mode] || 'ML';
 
     cellEl.innerHTML = `
         <div class="cell-header">

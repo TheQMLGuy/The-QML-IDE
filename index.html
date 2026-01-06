@@ -33,27 +33,49 @@
                     <span class="logo-icon">⚛️</span>
                     <span class="logo-text">QML IDE</span>
                 </div>
-                <!-- Mode Toggle -->
+                <!-- Mode Toggle - 6 Modes -->
                 <div class="mode-toggle">
-                    <button id="aiModeBtn" class="mode-btn active" data-mode="ai">
-                        <span class="mode-icon">🤖</span>
-                        <span class="mode-label">AI Mode</span>
+                    <button id="mlModeBtn" class="mode-btn active" data-mode="ml">
+                        <span class="mode-icon">🔬</span>
+                        <span class="mode-label">ML</span>
                     </button>
-                    <button id="quantumModeBtn" class="mode-btn" data-mode="quantum">
+                    <button id="dlModeBtn" class="mode-btn" data-mode="dl">
+                        <span class="mode-icon">🧠</span>
+                        <span class="mode-label">DL</span>
+                    </button>
+                    <button id="qiskitModeBtn" class="mode-btn" data-mode="qiskit">
                         <span class="mode-icon">⚛️</span>
-                        <span class="mode-label">Quantum</span>
+                        <span class="mode-label">Qiskit</span>
+                    </button>
+                    <button id="pennylaneModeBtn" class="mode-btn" data-mode="pennylane">
+                        <span class="mode-icon">🔮</span>
+                        <span class="mode-label">PennyLane</span>
+                    </button>
+                    <button id="pandasModeBtn" class="mode-btn" data-mode="pandas">
+                        <span class="mode-icon">🐼</span>
+                        <span class="mode-label">Pandas</span>
                     </button>
                     <button id="dataModeBtn" class="mode-btn" data-mode="data">
                         <span class="mode-icon">📊</span>
-                        <span class="mode-label">Data Analysis</span>
+                        <span class="mode-label">Data</span>
                     </button>
                 </div>
+                <!-- Mode Cycle Button -->
+                <button id="modeCycleBtn" class="cycle-btn" title="Cycle through modes (Tab)">
+                    <span class="cycle-icon">🔄</span>
+                </button>
             </div>
             <div class="header-center">
                 <div id="runtimeStatus" class="runtime-status loading">
                     <span class="status-dot"></span>
                     <span class="status-text">Loading Python Runtime...</span>
                 </div>
+                <!-- Two-way Sync Toggle -->
+                <label class="sync-toggle" title="Two-way visualization sync">
+                    <input type="checkbox" id="syncToggle" checked>
+                    <span class="sync-slider"></span>
+                    <span class="sync-label">Sync</span>
+                </label>
             </div>
             <div class="header-right">
                 <button id="runAllBtn" class="action-btn primary" title="Run All Cells (Shift+Enter)">
@@ -90,21 +112,145 @@
 
             <!-- Dynamic Sidebar -->
             <aside class="sidebar" id="sidebar">
-                <!-- AI Mode Sidebar -->
-                <div class="sidebar-content ai-sidebar" id="aiSidebar">
+                <!-- ML Mode Sidebar (scikit-learn) -->
+                <div class="sidebar-content ml-sidebar" id="mlSidebar">
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">🔬</span>
+                            Model Selection
+                        </h3>
+                        <div class="model-selector">
+                            <select id="mlModelSelect" class="model-dropdown">
+                                <optgroup label="Classification">
+                                    <option value="logistic">Logistic Regression</option>
+                                    <option value="svm">SVM (Support Vector)</option>
+                                    <option value="knn">K-Nearest Neighbors</option>
+                                    <option value="dt">Decision Tree</option>
+                                    <option value="rf">Random Forest</option>
+                                    <option value="nb">Naive Bayes</option>
+                                </optgroup>
+                                <optgroup label="Regression">
+                                    <option value="linear">Linear Regression</option>
+                                    <option value="ridge">Ridge Regression</option>
+                                    <option value="lasso">Lasso Regression</option>
+                                    <option value="svr">SVR</option>
+                                </optgroup>
+                                <optgroup label="Clustering">
+                                    <option value="kmeans">K-Means</option>
+                                    <option value="dbscan">DBSCAN</option>
+                                    <option value="agglom">Agglomerative</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">⚙️</span>
+                            Hyperparameters
+                        </h3>
+                        <div id="mlHyperparams" class="hyperparam-controls">
+                            <!-- Dynamically populated based on model -->
+                            <div class="control-group">
+                                <label>C (Regularization):</label>
+                                <input type="range" id="mlParamC" min="0.01" max="10" step="0.01" value="1">
+                                <span class="control-value" id="mlParamCValue">1.00</span>
+                            </div>
+                            <div class="control-group">
+                                <label>Test Size:</label>
+                                <input type="range" id="mlTestSize" min="0.1" max="0.5" step="0.05" value="0.2">
+                                <span class="control-value" id="mlTestSizeValue">0.20</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">📊</span>
+                            Decision Boundary
+                        </h3>
+                        <div class="viz-container">
+                            <canvas id="mlDecisionCanvas" width="280" height="200"></canvas>
+                        </div>
+                        <div class="metrics-display">
+                            <div class="metric">
+                                <span class="metric-label">Train Acc:</span>
+                                <span class="metric-value" id="mlTrainAcc">-</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Test Acc:</span>
+                                <span class="metric-value" id="mlTestAcc">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">📋</span>
+                            Code Snippets
+                        </h3>
+                        <div class="snippet-list">
+                            <button class="snippet-btn" data-snippet="sklearn_import">Import sklearn</button>
+                            <button class="snippet-btn" data-snippet="sklearn_logreg">Logistic Regression</button>
+                            <button class="snippet-btn" data-snippet="sklearn_svm">SVM Classifier</button>
+                            <button class="snippet-btn" data-snippet="sklearn_rf">Random Forest</button>
+                            <button class="snippet-btn" data-snippet="sklearn_kmeans">K-Means</button>
+                            <button class="snippet-btn" data-snippet="sklearn_pipeline">Pipeline</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DL Mode Sidebar (PyTorch) -->
+                <div class="sidebar-content dl-sidebar hidden" id="dlSidebar">
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">🧱</span>
+                            Layer Palette
+                        </h3>
+                        <div class="layer-palette">
+                            <div class="layer-category">
+                                <span class="category-label">Core Layers</span>
+                                <div class="layer-buttons">
+                                    <button class="layer-btn" data-layer="linear"
+                                        title="Fully Connected">Linear</button>
+                                    <button class="layer-btn" data-layer="conv2d" title="2D Convolution">Conv2d</button>
+                                    <button class="layer-btn" data-layer="lstm" title="LSTM">LSTM</button>
+                                    <button class="layer-btn" data-layer="gru" title="GRU">GRU</button>
+                                </div>
+                            </div>
+                            <div class="layer-category">
+                                <span class="category-label">Activations</span>
+                                <div class="layer-buttons">
+                                    <button class="layer-btn activation" data-layer="relu">ReLU</button>
+                                    <button class="layer-btn activation" data-layer="sigmoid">Sigmoid</button>
+                                    <button class="layer-btn activation" data-layer="tanh">Tanh</button>
+                                    <button class="layer-btn activation" data-layer="softmax">Softmax</button>
+                                </div>
+                            </div>
+                            <div class="layer-category">
+                                <span class="category-label">Regularization</span>
+                                <div class="layer-buttons">
+                                    <button class="layer-btn regularization" data-layer="dropout">Dropout</button>
+                                    <button class="layer-btn regularization" data-layer="batchnorm">BatchNorm</button>
+                                    <button class="layer-btn regularization" data-layer="layernorm">LayerNorm</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="sidebar-section">
                         <h3 class="section-title">
                             <span class="section-icon">🧠</span>
                             Network Architecture
                         </h3>
-                        <div class="network-preview" id="networkPreview">
-                            <canvas id="networkCanvas" width="280" height="200"></canvas>
+                        <div class="network-preview" id="dlNetworkPreview">
+                            <canvas id="dlNetworkCanvas" width="280" height="200"></canvas>
                         </div>
                         <div class="layer-controls">
                             <label>Hidden Layers:</label>
                             <div class="layer-input-group">
-                                <input type="text" id="layerConfig" placeholder="e.g., 64, 32, 16" value="64, 32">
-                                <button id="applyLayers" class="btn-small">Apply</button>
+                                <input type="text" id="dlLayerConfig" placeholder="e.g., 128, 64, 32" value="128, 64">
+                                <button id="dlApplyLayers" class="btn-small">Apply</button>
                             </div>
                         </div>
                     </div>
@@ -116,20 +262,25 @@
                         </h3>
                         <div class="control-group">
                             <label>Learning Rate:</label>
-                            <input type="range" id="learningRate" min="0.0001" max="0.1" step="0.0001" value="0.01">
-                            <span class="control-value" id="lrValue">0.01</span>
+                            <input type="range" id="dlLearningRate" min="0.0001" max="0.1" step="0.0001" value="0.001">
+                            <span class="control-value" id="dlLrValue">0.001</span>
                         </div>
                         <div class="control-group">
-                            <label>Epochs:</label>
-                            <input type="number" id="epochs" min="1" max="1000" value="100">
+                            <label>Optimizer:</label>
+                            <select id="dlOptimizer">
+                                <option value="adam">Adam</option>
+                                <option value="sgd">SGD</option>
+                                <option value="rmsprop">RMSprop</option>
+                                <option value="adamw">AdamW</option>
+                            </select>
                         </div>
                         <div class="control-group">
-                            <label>Batch Size:</label>
-                            <select id="batchSize">
-                                <option value="16">16</option>
-                                <option value="32" selected>32</option>
-                                <option value="64">64</option>
-                                <option value="128">128</option>
+                            <label>Loss Function:</label>
+                            <select id="dlLoss">
+                                <option value="crossentropy">CrossEntropyLoss</option>
+                                <option value="mse">MSELoss</option>
+                                <option value="bce">BCELoss</option>
+                                <option value="nll">NLLLoss</option>
                             </select>
                         </div>
                     </div>
@@ -140,16 +291,16 @@
                             Training Progress
                         </h3>
                         <div class="chart-container">
-                            <canvas id="lossChart" width="280" height="150"></canvas>
+                            <canvas id="dlLossChart" width="280" height="150"></canvas>
                         </div>
                         <div class="metrics-display">
                             <div class="metric">
                                 <span class="metric-label">Loss:</span>
-                                <span class="metric-value" id="lossValue">-</span>
+                                <span class="metric-value" id="dlLossValue">-</span>
                             </div>
                             <div class="metric">
                                 <span class="metric-label">Accuracy:</span>
-                                <span class="metric-value" id="accuracyValue">-</span>
+                                <span class="metric-value" id="dlAccuracyValue">-</span>
                             </div>
                         </div>
                     </div>
@@ -160,54 +311,64 @@
                             Code Snippets
                         </h3>
                         <div class="snippet-list">
-                            <button class="snippet-btn" data-snippet="import_torch">Import PyTorch</button>
-                            <button class="snippet-btn" data-snippet="import_sklearn">Import Sklearn</button>
-                            <button class="snippet-btn" data-snippet="mlp_model">MLP Model</button>
-                            <button class="snippet-btn" data-snippet="train_loop">Training Loop</button>
-                            <button class="snippet-btn" data-snippet="data_loader">Data Loader</button>
+                            <button class="snippet-btn" data-snippet="torch_import">Import PyTorch</button>
+                            <button class="snippet-btn" data-snippet="torch_nn">nn.Module</button>
+                            <button class="snippet-btn" data-snippet="torch_cnn">CNN Model</button>
+                            <button class="snippet-btn" data-snippet="torch_train">Training Loop</button>
+                            <button class="snippet-btn" data-snippet="torch_dataloader">DataLoader</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Quantum Mode Sidebar -->
-                <div class="sidebar-content quantum-sidebar hidden" id="quantumSidebar">
+                <!-- Qiskit Mode Sidebar -->
+                <div class="sidebar-content qiskit-sidebar hidden" id="qiskitSidebar">
                     <div class="sidebar-section">
                         <h3 class="section-title">
-                            <span class="section-icon">🎯</span>
-                            Gate Palette
+                            <span class="section-icon">⚛️</span>
+                            Qiskit Gate Palette
                         </h3>
                         <div class="gate-palette">
                             <div class="gate-category">
                                 <span class="category-label">Single Qubit</span>
                                 <div class="gate-buttons">
-                                    <button class="gate-btn" data-gate="H" title="Hadamard Gate">H</button>
-                                    <button class="gate-btn" data-gate="X" title="Pauli-X (NOT)">X</button>
-                                    <button class="gate-btn" data-gate="Y" title="Pauli-Y">Y</button>
-                                    <button class="gate-btn" data-gate="Z" title="Pauli-Z">Z</button>
-                                    <button class="gate-btn" data-gate="S" title="S Gate (√Z)">S</button>
-                                    <button class="gate-btn" data-gate="T" title="T Gate">T</button>
+                                    <button class="gate-btn qiskit" data-gate="h" title="qc.h()">H</button>
+                                    <button class="gate-btn qiskit" data-gate="x" title="qc.x()">X</button>
+                                    <button class="gate-btn qiskit" data-gate="y" title="qc.y()">Y</button>
+                                    <button class="gate-btn qiskit" data-gate="z" title="qc.z()">Z</button>
+                                    <button class="gate-btn qiskit" data-gate="s" title="qc.s()">S</button>
+                                    <button class="gate-btn qiskit" data-gate="t" title="qc.t()">T</button>
                                 </div>
                             </div>
                             <div class="gate-category">
                                 <span class="category-label">Rotation</span>
                                 <div class="gate-buttons">
-                                    <button class="gate-btn parametric" data-gate="RX" title="Rotation X">Rx</button>
-                                    <button class="gate-btn parametric" data-gate="RY" title="Rotation Y">Ry</button>
-                                    <button class="gate-btn parametric" data-gate="RZ" title="Rotation Z">Rz</button>
+                                    <button class="gate-btn qiskit parametric" data-gate="rx"
+                                        title="qc.rx(θ, q)">Rx</button>
+                                    <button class="gate-btn qiskit parametric" data-gate="ry"
+                                        title="qc.ry(θ, q)">Ry</button>
+                                    <button class="gate-btn qiskit parametric" data-gate="rz"
+                                        title="qc.rz(θ, q)">Rz</button>
+                                    <button class="gate-btn qiskit parametric" data-gate="u"
+                                        title="qc.u(θ,φ,λ,q)">U</button>
                                 </div>
                             </div>
                             <div class="gate-category">
                                 <span class="category-label">Multi-Qubit</span>
                                 <div class="gate-buttons">
-                                    <button class="gate-btn multi" data-gate="CNOT" title="Controlled-NOT">CX</button>
-                                    <button class="gate-btn multi" data-gate="CZ" title="Controlled-Z">CZ</button>
-                                    <button class="gate-btn multi" data-gate="SWAP" title="SWAP">⟷</button>
+                                    <button class="gate-btn qiskit multi" data-gate="cx" title="qc.cx()">CX</button>
+                                    <button class="gate-btn qiskit multi" data-gate="cz" title="qc.cz()">CZ</button>
+                                    <button class="gate-btn qiskit multi" data-gate="swap"
+                                        title="qc.swap()">SWAP</button>
+                                    <button class="gate-btn qiskit multi" data-gate="ccx" title="qc.ccx()">CCX</button>
                                 </div>
                             </div>
                             <div class="gate-category">
-                                <span class="category-label">Measure</span>
+                                <span class="category-label">Measurement</span>
                                 <div class="gate-buttons">
-                                    <button class="gate-btn measure" data-gate="M" title="Measurement">📊</button>
+                                    <button class="gate-btn qiskit measure" data-gate="measure"
+                                        title="qc.measure()">📊</button>
+                                    <button class="gate-btn qiskit measure" data-gate="barrier"
+                                        title="qc.barrier()">║</button>
                                 </div>
                             </div>
                         </div>
@@ -216,41 +377,44 @@
                     <div class="sidebar-section">
                         <h3 class="section-title">
                             <span class="section-icon">🔬</span>
-                            Circuit Preview
+                            Circuit Builder
                         </h3>
                         <div class="circuit-preview">
                             <div class="qubit-control">
                                 <label>Qubits:</label>
-                                <input type="number" id="qubitCount" min="1" max="10" value="3">
+                                <input type="number" id="qiskitQubitCount" min="1" max="10" value="3">
+                                <label style="margin-left:8px">Cbits:</label>
+                                <input type="number" id="qiskitCbitCount" min="0" max="10" value="3">
                             </div>
-                            <svg id="circuitSvg" class="circuit-svg" width="280" height="120"></svg>
+                            <svg id="qiskitCircuitSvg" class="circuit-svg" width="280" height="120"></svg>
                         </div>
                     </div>
 
                     <div class="sidebar-section">
                         <h3 class="section-title">
-                            <span class="section-icon">🌐</span>
-                            Bloch Sphere
+                            <span class="section-icon">⚙️</span>
+                            Backend Options
                         </h3>
-                        <div class="bloch-container">
-                            <select id="qubitSelect" class="qubit-select">
-                                <option value="0">Qubit 0</option>
-                                <option value="1">Qubit 1</option>
-                                <option value="2">Qubit 2</option>
+                        <div class="control-group">
+                            <label>Simulator:</label>
+                            <select id="qiskitBackend">
+                                <option value="aer_simulator">Aer Simulator</option>
+                                <option value="statevector">Statevector</option>
+                                <option value="qasm_simulator">QASM Simulator</option>
                             </select>
-                            <canvas id="blochCanvas" width="200" height="200"></canvas>
                         </div>
-                        <div class="qubit-state">
-                            <div class="state-label">|ψ⟩ = <span id="stateFormula">|0⟩</span></div>
+                        <div class="control-group">
+                            <label>Shots:</label>
+                            <input type="number" id="qiskitShots" min="1" max="10000" value="1024">
                         </div>
                     </div>
 
                     <div class="sidebar-section">
                         <h3 class="section-title">
                             <span class="section-icon">📊</span>
-                            Probabilities
+                            Results
                         </h3>
-                        <div id="probabilityBars" class="probability-bars">
+                        <div id="qiskitResults" class="probability-bars">
                             <!-- Dynamically populated -->
                         </div>
                     </div>
@@ -261,11 +425,235 @@
                             Code Snippets
                         </h3>
                         <div class="snippet-list">
-                            <button class="snippet-btn" data-snippet="import_qiskit">Import Qiskit</button>
-                            <button class="snippet-btn" data-snippet="import_pennylane">Import PennyLane</button>
-                            <button class="snippet-btn" data-snippet="bell_state">Bell State</button>
-                            <button class="snippet-btn" data-snippet="qft">QFT Circuit</button>
-                            <button class="snippet-btn" data-snippet="vqe">VQE Template</button>
+                            <button class="snippet-btn" data-snippet="qiskit_import">Import Qiskit</button>
+                            <button class="snippet-btn" data-snippet="qiskit_circuit">Basic Circuit</button>
+                            <button class="snippet-btn" data-snippet="qiskit_bell">Bell State</button>
+                            <button class="snippet-btn" data-snippet="qiskit_qft">QFT</button>
+                            <button class="snippet-btn" data-snippet="qiskit_vqe">VQE</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PennyLane Mode Sidebar -->
+                <div class="sidebar-content pennylane-sidebar hidden" id="pennylaneSidebar">
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">🔮</span>
+                            PennyLane Operations
+                        </h3>
+                        <div class="gate-palette">
+                            <div class="gate-category">
+                                <span class="category-label">Basic Gates</span>
+                                <div class="gate-buttons">
+                                    <button class="gate-btn pennylane" data-gate="Hadamard"
+                                        title="qml.Hadamard">H</button>
+                                    <button class="gate-btn pennylane" data-gate="PauliX" title="qml.PauliX">X</button>
+                                    <button class="gate-btn pennylane" data-gate="PauliY" title="qml.PauliY">Y</button>
+                                    <button class="gate-btn pennylane" data-gate="PauliZ" title="qml.PauliZ">Z</button>
+                                </div>
+                            </div>
+                            <div class="gate-category">
+                                <span class="category-label">Rotation (Trainable)</span>
+                                <div class="gate-buttons">
+                                    <button class="gate-btn pennylane parametric" data-gate="RX"
+                                        title="qml.RX(θ, wires)">RX</button>
+                                    <button class="gate-btn pennylane parametric" data-gate="RY"
+                                        title="qml.RY(θ, wires)">RY</button>
+                                    <button class="gate-btn pennylane parametric" data-gate="RZ"
+                                        title="qml.RZ(θ, wires)">RZ</button>
+                                    <button class="gate-btn pennylane parametric" data-gate="Rot"
+                                        title="qml.Rot(φ,θ,ω)">Rot</button>
+                                </div>
+                            </div>
+                            <div class="gate-category">
+                                <span class="category-label">Entangling</span>
+                                <div class="gate-buttons">
+                                    <button class="gate-btn pennylane multi" data-gate="CNOT"
+                                        title="qml.CNOT">CNOT</button>
+                                    <button class="gate-btn pennylane multi" data-gate="CZ" title="qml.CZ">CZ</button>
+                                    <button class="gate-btn pennylane multi" data-gate="SWAP"
+                                        title="qml.SWAP">SWAP</button>
+                                </div>
+                            </div>
+                            <div class="gate-category">
+                                <span class="category-label">QML Templates</span>
+                                <div class="gate-buttons">
+                                    <button class="gate-btn pennylane template" data-gate="StronglyEntangling"
+                                        title="StronglyEntanglingLayers">SE</button>
+                                    <button class="gate-btn pennylane template" data-gate="BasicEntangler"
+                                        title="BasicEntanglerLayers">BE</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">⚙️</span>
+                            Device Settings
+                        </h3>
+                        <div class="control-group">
+                            <label>Device:</label>
+                            <select id="pennylaneDevice">
+                                <option value="default.qubit">default.qubit</option>
+                                <option value="default.mixed">default.mixed</option>
+                                <option value="lightning.qubit">lightning.qubit</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>Wires:</label>
+                            <input type="number" id="pennylaneWires" min="1" max="10" value="4">
+                        </div>
+                        <div class="control-group">
+                            <label>Interface:</label>
+                            <select id="pennylaneInterface">
+                                <option value="autograd">autograd</option>
+                                <option value="torch">torch</option>
+                                <option value="jax">jax</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">🌐</span>
+                            Bloch Sphere
+                        </h3>
+                        <div class="bloch-container">
+                            <select id="pennylaneQubitSelect" class="qubit-select">
+                                <option value="0">Wire 0</option>
+                                <option value="1">Wire 1</option>
+                                <option value="2">Wire 2</option>
+                            </select>
+                            <canvas id="pennylaneBlochCanvas" width="200" height="200"></canvas>
+                        </div>
+                        <div class="qubit-state">
+                            <div class="state-label">|ψ⟩ = <span id="pennylaneStateFormula">|0⟩</span></div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">📊</span>
+                            Expectation Values
+                        </h3>
+                        <div id="pennylaneExpval" class="expval-display">
+                            <div class="expval-item">
+                                <span class="expval-label">⟨Z₀⟩:</span>
+                                <span class="expval-value" id="expvalZ0">-</span>
+                            </div>
+                            <div class="expval-item">
+                                <span class="expval-label">⟨X₀⟩:</span>
+                                <span class="expval-value" id="expvalX0">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">📋</span>
+                            Code Snippets
+                        </h3>
+                        <div class="snippet-list">
+                            <button class="snippet-btn" data-snippet="pennylane_import">Import PennyLane</button>
+                            <button class="snippet-btn" data-snippet="pennylane_qnode">QNode</button>
+                            <button class="snippet-btn" data-snippet="pennylane_vqe">VQE</button>
+                            <button class="snippet-btn" data-snippet="pennylane_qml">QML Classifier</button>
+                            <button class="snippet-btn" data-snippet="pennylane_grad">Gradients</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pandas Mode Sidebar -->
+                <div class="sidebar-content pandas-sidebar hidden" id="pandasSidebar">
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">🐼</span>
+                            DataFrame Preview
+                        </h3>
+                        <div class="dataframe-preview">
+                            <div class="df-controls">
+                                <button id="loadSampleDf" class="btn-small">Load Sample</button>
+                                <button id="refreshDf" class="btn-small">Refresh</button>
+                            </div>
+                            <div id="dfTable" class="df-table-container">
+                                <table class="df-table">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>col1</th>
+                                            <th>col2</th>
+                                            <th>col3</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>0</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="df-info">
+                                <span id="dfShape">Shape: -</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">📊</span>
+                            Column Info
+                        </h3>
+                        <div id="columnInfo" class="column-info">
+                            <div class="col-item">
+                                <span class="col-name">column</span>
+                                <span class="col-dtype">dtype</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">⚙️</span>
+                            DataFrame Operations
+                        </h3>
+                        <div class="df-operations">
+                            <button class="op-btn" data-op="head" title="df.head()">Head</button>
+                            <button class="op-btn" data-op="tail" title="df.tail()">Tail</button>
+                            <button class="op-btn" data-op="describe" title="df.describe()">Describe</button>
+                            <button class="op-btn" data-op="info" title="df.info()">Info</button>
+                            <button class="op-btn" data-op="nunique" title="df.nunique()">Nunique</button>
+                            <button class="op-btn" data-op="isnull" title="df.isnull().sum()">Null Count</button>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">📋</span>
+                            Code Snippets
+                        </h3>
+                        <div class="snippet-list">
+                            <button class="snippet-btn" data-snippet="pandas_import">Import Pandas</button>
+                            <button class="snippet-btn" data-snippet="pandas_read">Read CSV</button>
+                            <button class="snippet-btn" data-snippet="pandas_filter">Filter Rows</button>
+                            <button class="snippet-btn" data-snippet="pandas_groupby">Group By</button>
+                            <button class="snippet-btn" data-snippet="pandas_merge">Merge DataFrames</button>
+                            <button class="snippet-btn" data-snippet="pandas_plot">Plot Data</button>
                         </div>
                     </div>
                 </div>
@@ -481,16 +869,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/edit/closebrackets.min.js"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
 
-    <!-- Quantum Tools (from existing project) -->
-    <script src="Qiskit-Pennylane-IDE/gates.js"></script>
-    <script src="Qiskit-Pennylane-IDE/simulator.js"></script>
-    <script src="Qiskit-Pennylane-IDE/bloch-sphere.js"></script>
+    <!-- ML Tools (sklearn) -->
+    <script src="ml-tools.js"></script>
 
-    <!-- AI Tools -->
+    <!-- DL Tools (PyTorch) -->
     <script src="ai-tools.js"></script>
 
-    <!-- Quantum Tools Integration -->
-    <script src="quantum-tools.js"></script>
+    <!-- Qiskit Tools -->
+    <script src="qiskit-tools.js"></script>
+
+    <!-- PennyLane Tools -->
+    <script src="pennylane-tools.js"></script>
+
+    <!-- Pandas Tools -->
+    <script src="pandas-tools.js"></script>
 
     <!-- Data Analysis Tools -->
     <script src="data-tools.js"></script>
