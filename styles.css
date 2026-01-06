@@ -8,39 +8,43 @@
     --bg-secondary: #1a1d24;
     --bg-tertiary: #252830;
     --bg-elevated: #2d3139;
-    
+
     --text-primary: #e0e0e0;
     --text-secondary: #a0a0a0;
     --text-muted: #6b7280;
-    
+
     --accent-ai: #3b82f6;
     --accent-ai-hover: #2563eb;
     --accent-ai-glow: rgba(59, 130, 246, 0.3);
-    
+
     --accent-quantum: #8b5cf6;
     --accent-quantum-hover: #7c3aed;
     --accent-quantum-glow: rgba(139, 92, 246, 0.3);
-    
+
+    --accent-data: #10b981;
+    --accent-data-hover: #059669;
+    --accent-data-glow: rgba(16, 185, 129, 0.3);
+
     --success: #10b981;
     --warning: #f59e0b;
     --error: #ef4444;
-    
+
     --border-color: #374151;
     --border-light: #2d3139;
-    
+
     /* Sizing */
     --header-height: 56px;
     --sidebar-width: 320px;
     --console-height: 200px;
-    
+
     /* Fonts */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-    
+
     /* Transitions */
     --transition-fast: 0.15s ease;
     --transition-normal: 0.25s ease;
-    
+
     /* Border Radius */
     --radius-sm: 4px;
     --radius-md: 8px;
@@ -53,11 +57,11 @@
     --bg-secondary: #ffffff;
     --bg-tertiary: #f1f5f9;
     --bg-elevated: #ffffff;
-    
+
     --text-primary: #1e293b;
     --text-secondary: #475569;
     --text-muted: #94a3b8;
-    
+
     --border-color: #e2e8f0;
     --border-light: #f1f5f9;
 }
@@ -66,13 +70,16 @@
    Base Styles
    =========================== */
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-html, body {
+html,
+body {
     width: 100%;
     height: 100%;
     overflow: hidden;
@@ -210,8 +217,15 @@ body {
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
 
 /* Action Buttons */
@@ -1131,7 +1145,7 @@ body {
     .sidebar {
         width: 280px;
     }
-    
+
     .mode-label {
         display: none;
     }
@@ -1141,28 +1155,252 @@ body {
     .main-content {
         flex-direction: column;
     }
-    
+
     .sidebar {
         width: 100%;
         max-height: 50vh;
         border-left: none;
         border-top: 1px solid var(--border-color);
     }
-    
+
     .header {
         flex-wrap: wrap;
         height: auto;
         padding: 12px;
         gap: 12px;
     }
-    
+
     .header-center {
         order: 3;
         width: 100%;
         justify-content: center;
     }
-    
+
     .btn-text {
         display: none;
     }
+}
+
+/* ===========================
+   Data Analysis Mode Styles
+   =========================== */
+
+/* Mode Button */
+.mode-btn.active[data-mode="data"] {
+    background: var(--accent-data);
+    color: white;
+    box-shadow: 0 2px 8px var(--accent-data-glow);
+}
+
+/* Cell Badge */
+.cell-type-badge.data {
+    background: var(--accent-data-glow);
+    color: var(--accent-data);
+}
+
+.code-cell.focused.data-mode {
+    border-color: var(--accent-data);
+    box-shadow: 0 0 0 2px var(--accent-data-glow);
+}
+
+/* Data Sidebar */
+.data-sidebar .btn-small {
+    background: var(--accent-data);
+}
+
+.data-sidebar .btn-small:hover {
+    background: var(--accent-data-hover);
+}
+
+.data-sidebar .control-group input[type="range"]::-webkit-slider-thumb {
+    background: var(--accent-data);
+}
+
+.data-sidebar .control-value {
+    color: var(--accent-data);
+}
+
+.data-sidebar .snippet-btn:hover {
+    border-color: var(--accent-data);
+    color: var(--accent-data);
+}
+
+/* Dataset Browser */
+.dataset-browser {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dataset-search input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+
+.dataset-search input::placeholder {
+    color: var(--text-muted);
+}
+
+.dataset-search input:focus {
+    outline: none;
+    border-color: var(--accent-data);
+    box-shadow: 0 0 0 2px var(--accent-data-glow);
+}
+
+.dataset-sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.dataset-source-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.dataset-source-btn:hover {
+    background: var(--bg-elevated);
+    border-color: var(--accent-data);
+    color: var(--accent-data);
+}
+
+.dataset-source-btn.active {
+    background: var(--accent-data);
+    border-color: var(--accent-data);
+    color: white;
+}
+
+.source-icon {
+    font-size: 0.9rem;
+}
+
+.dataset-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.dataset-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.dataset-item:hover {
+    background: var(--bg-elevated);
+    border-color: var(--accent-data);
+    transform: translateX(4px);
+}
+
+.dataset-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.dataset-size {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+/* Mining Tools */
+.mining-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tool-category {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tool-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tool-btn {
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.tool-btn:hover {
+    background: var(--accent-data);
+    border-color: var(--accent-data);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--accent-data-glow);
+}
+
+/* EDA Preview */
+.eda-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#edaChart {
+    width: 100%;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+}
+
+.eda-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent-data);
+    font-family: var(--font-mono);
 }

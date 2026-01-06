@@ -1,23 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QML IDE - Quantum Machine Learning</title>
-    <meta name="description" content="Unified Quantum Machine Learning IDE with Jupyter notebook-style interface for AI and Quantum computing">
-    
+    <meta name="description"
+        content="Unified Quantum Machine Learning IDE with Jupyter notebook-style interface for AI and Quantum computing">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
     <!-- CodeMirror -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/material-darker.min.css">
-    
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/material-darker.min.css">
+
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div id="app" class="app">
         <!-- Header -->
@@ -35,7 +41,11 @@
                     </button>
                     <button id="quantumModeBtn" class="mode-btn" data-mode="quantum">
                         <span class="mode-icon">⚛️</span>
-                        <span class="mode-label">Quantum Mode</span>
+                        <span class="mode-label">Quantum</span>
+                    </button>
+                    <button id="dataModeBtn" class="mode-btn" data-mode="data">
+                        <span class="mode-icon">📊</span>
+                        <span class="mode-label">Data Analysis</span>
                     </button>
                 </div>
             </div>
@@ -259,6 +269,156 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Data Analysis Mode Sidebar -->
+                <div class="sidebar-content data-sidebar hidden" id="dataSidebar">
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">📦</span>
+                            Dataset Browser
+                        </h3>
+                        <div class="dataset-browser">
+                            <div class="dataset-search">
+                                <input type="text" id="datasetSearch" placeholder="Search datasets...">
+                            </div>
+                            <div class="dataset-sources">
+                                <button class="dataset-source-btn active" data-source="kaggle">
+                                    <span class="source-icon">🏆</span>
+                                    Kaggle
+                                </button>
+                                <button class="dataset-source-btn" data-source="uci">
+                                    <span class="source-icon">🎓</span>
+                                    UCI ML
+                                </button>
+                                <button class="dataset-source-btn" data-source="sklearn">
+                                    <span class="source-icon">🔬</span>
+                                    Sklearn
+                                </button>
+                                <button class="dataset-source-btn" data-source="huggingface">
+                                    <span class="source-icon">🤗</span>
+                                    HuggingFace
+                                </button>
+                            </div>
+                            <div class="dataset-list" id="datasetList">
+                                <!-- Popular datasets -->
+                                <div class="dataset-item" data-dataset="titanic">
+                                    <span class="dataset-name">🚢 Titanic</span>
+                                    <span class="dataset-size">891 rows</span>
+                                </div>
+                                <div class="dataset-item" data-dataset="iris">
+                                    <span class="dataset-name">🌸 Iris</span>
+                                    <span class="dataset-size">150 rows</span>
+                                </div>
+                                <div class="dataset-item" data-dataset="mnist">
+                                    <span class="dataset-name">✍️ MNIST</span>
+                                    <span class="dataset-size">70k images</span>
+                                </div>
+                                <div class="dataset-item" data-dataset="wine">
+                                    <span class="dataset-name">🍷 Wine Quality</span>
+                                    <span class="dataset-size">4,898 rows</span>
+                                </div>
+                                <div class="dataset-item" data-dataset="housing">
+                                    <span class="dataset-name">🏠 Housing Prices</span>
+                                    <span class="dataset-size">1,460 rows</span>
+                                </div>
+                                <div class="dataset-item" data-dataset="diabetes">
+                                    <span class="dataset-name">🩺 Diabetes</span>
+                                    <span class="dataset-size">768 rows</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">⛏️</span>
+                            Data Mining Tools
+                        </h3>
+                        <div class="mining-tools">
+                            <div class="tool-category">
+                                <span class="category-label">Preprocessing</span>
+                                <div class="tool-buttons">
+                                    <button class="tool-btn" data-tool="missing" title="Handle Missing Values">Missing
+                                        Values</button>
+                                    <button class="tool-btn" data-tool="normalize"
+                                        title="Normalize Data">Normalize</button>
+                                    <button class="tool-btn" data-tool="encode"
+                                        title="Encode Categorical">Encode</button>
+                                    <button class="tool-btn" data-tool="scale" title="Feature Scaling">Scale</button>
+                                </div>
+                            </div>
+                            <div class="tool-category">
+                                <span class="category-label">Feature Engineering</span>
+                                <div class="tool-buttons">
+                                    <button class="tool-btn" data-tool="pca"
+                                        title="Principal Component Analysis">PCA</button>
+                                    <button class="tool-btn" data-tool="selection"
+                                        title="Feature Selection">Selection</button>
+                                    <button class="tool-btn" data-tool="poly"
+                                        title="Polynomial Features">Polynomial</button>
+                                </div>
+                            </div>
+                            <div class="tool-category">
+                                <span class="category-label">Clustering</span>
+                                <div class="tool-buttons">
+                                    <button class="tool-btn" data-tool="kmeans"
+                                        title="K-Means Clustering">K-Means</button>
+                                    <button class="tool-btn" data-tool="dbscan"
+                                        title="DBSCAN Clustering">DBSCAN</button>
+                                    <button class="tool-btn" data-tool="hierarchical"
+                                        title="Hierarchical Clustering">Hierarchical</button>
+                                </div>
+                            </div>
+                            <div class="tool-category">
+                                <span class="category-label">Association Rules</span>
+                                <div class="tool-buttons">
+                                    <button class="tool-btn" data-tool="apriori"
+                                        title="Apriori Algorithm">Apriori</button>
+                                    <button class="tool-btn" data-tool="fpgrowth" title="FP-Growth">FP-Growth</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">📈</span>
+                            EDA Preview
+                        </h3>
+                        <div class="eda-preview">
+                            <canvas id="edaChart" width="280" height="150"></canvas>
+                            <div class="eda-stats" id="edaStats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Rows:</span>
+                                    <span class="stat-value" id="statRows">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Columns:</span>
+                                    <span class="stat-value" id="statCols">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Missing:</span>
+                                    <span class="stat-value" id="statMissing">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">📋</span>
+                            Code Snippets
+                        </h3>
+                        <div class="snippet-list">
+                            <button class="snippet-btn" data-snippet="import_pandas">Import Pandas</button>
+                            <button class="snippet-btn" data-snippet="load_kaggle">Load from Kaggle</button>
+                            <button class="snippet-btn" data-snippet="eda_basic">Basic EDA</button>
+                            <button class="snippet-btn" data-snippet="data_cleaning">Data Cleaning</button>
+                            <button class="snippet-btn" data-snippet="visualization">Visualization</button>
+                            <button class="snippet-btn" data-snippet="clustering">Clustering</button>
+                        </div>
+                    </div>
+                </div>
             </aside>
         </main>
 
@@ -320,19 +480,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/edit/matchbrackets.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/edit/closebrackets.min.js"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-    
+
     <!-- Quantum Tools (from existing project) -->
     <script src="Qiskit-Pennylane-IDE/gates.js"></script>
     <script src="Qiskit-Pennylane-IDE/simulator.js"></script>
     <script src="Qiskit-Pennylane-IDE/bloch-sphere.js"></script>
-    
+
     <!-- AI Tools -->
     <script src="ai-tools.js"></script>
-    
+
     <!-- Quantum Tools Integration -->
     <script src="quantum-tools.js"></script>
-    
+
+    <!-- Data Analysis Tools -->
+    <script src="data-tools.js"></script>
+
     <!-- Main Application -->
     <script src="app.js"></script>
 </body>
+
 </html>

@@ -8,7 +8,7 @@
 // ===========================
 
 const AppState = {
-    mode: 'ai', // 'ai' or 'quantum'
+    mode: 'ai', // 'ai', 'quantum', or 'data'
     cells: [],
     activeCellId: null,
     pyodide: null,
@@ -467,6 +467,11 @@ async function initializeApp() {
         initializeQuantumTools();
     }
 
+    // Initialize Data Analysis tools
+    if (typeof initializeDataTools === 'function') {
+        initializeDataTools();
+    }
+
     console.log('QML IDE initialized!');
 }
 
@@ -519,9 +524,11 @@ async function initializePyodide() {
 function setupModeToggle() {
     const aiBtn = document.getElementById('aiModeBtn');
     const quantumBtn = document.getElementById('quantumModeBtn');
+    const dataBtn = document.getElementById('dataModeBtn');
 
     aiBtn.addEventListener('click', () => switchMode('ai'));
     quantumBtn.addEventListener('click', () => switchMode('quantum'));
+    dataBtn.addEventListener('click', () => switchMode('data'));
 }
 
 function switchMode(mode) {
@@ -530,20 +537,26 @@ function switchMode(mode) {
     // Update toggle buttons
     const aiBtn = document.getElementById('aiModeBtn');
     const quantumBtn = document.getElementById('quantumModeBtn');
+    const dataBtn = document.getElementById('dataModeBtn');
 
     aiBtn.classList.toggle('active', mode === 'ai');
     quantumBtn.classList.toggle('active', mode === 'quantum');
+    dataBtn.classList.toggle('active', mode === 'data');
 
     // Update sidebars
     const aiSidebar = document.getElementById('aiSidebar');
     const quantumSidebar = document.getElementById('quantumSidebar');
+    const dataSidebar = document.getElementById('dataSidebar');
 
     aiSidebar.classList.toggle('hidden', mode !== 'ai');
     quantumSidebar.classList.toggle('hidden', mode !== 'quantum');
+    dataSidebar.classList.toggle('hidden', mode !== 'data');
 
     // Update cell styling
     document.querySelectorAll('.code-cell').forEach(cell => {
-        cell.classList.toggle('quantum-mode', mode === 'quantum');
+        cell.classList.remove('quantum-mode', 'data-mode');
+        if (mode === 'quantum') cell.classList.add('quantum-mode');
+        if (mode === 'data') cell.classList.add('data-mode');
     });
 
     console.log(`Switched to ${mode} mode`);
@@ -601,13 +614,18 @@ function addCell(initialCode = '') {
     cellEl.id = `cell-${cellId}`;
     if (AppState.mode === 'quantum') {
         cellEl.classList.add('quantum-mode');
+    } else if (AppState.mode === 'data') {
+        cellEl.classList.add('data-mode');
     }
+
+    const modeLabels = { ai: 'AI', quantum: 'Quantum', data: 'Data' };
+    const modeLabel = modeLabels[AppState.mode] || 'AI';
 
     cellEl.innerHTML = `
         <div class="cell-header">
             <div class="cell-number">
                 <span>In [${cellId}]</span>
-                <span class="cell-type-badge ${AppState.mode}">${AppState.mode === 'ai' ? 'AI' : 'Quantum'}</span>
+                <span class="cell-type-badge ${AppState.mode}">${modeLabel}</span>
             </div>
             <div class="cell-actions">
                 <button class="cell-btn run" title="Run Cell (Shift+Enter)">▶ Run</button>
