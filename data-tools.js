@@ -425,6 +425,27 @@ print("Size: ${dataset.size}")`;
             window.QMLApp.insertSnippet(code);
             window.QMLApp.logToConsole(`Loaded dataset template: ${dataset.name}`, 'info');
         }
+
+        // Update active tab with dataset info
+        if (typeof TabManager !== 'undefined') {
+            TabManager.setActiveTabDataset({
+                name: dataset.name,
+                source: this.currentSource,
+                id: datasetId,
+                size: dataset.size
+            });
+        }
+
+        // Trigger basic analysis preview (update EDA stats)
+        if (typeof EDAPreview !== 'undefined') {
+            EDAPreview.updateStats(
+                parseInt(dataset.size?.replace(/[^\d]/g, '')) || 0,
+                'varies',
+                0
+            );
+        }
+
+        console.log(`Dataset loaded: ${dataset.name}`);
     }
 };
 

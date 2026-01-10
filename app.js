@@ -447,6 +447,20 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initializeApp() {
     console.log('Initializing QML IDE...');
 
+    // Initialize Workflow Engine first (for phase-based flow)
+    if (typeof WorkflowEngine !== 'undefined') {
+        WorkflowEngine.init();
+        console.log('Workflow Engine started - Phase-based flow active');
+
+        // Don't initialize IDE components yet - they'll be initialized when entering Phase 4
+        // Initialize Python runtime in background
+        await initializePyodide();
+        return;
+    }
+
+    // Fallback: Direct IDE mode (no workflow)
+    console.log('Direct IDE mode - no workflow');
+
     // Setup event listeners
     setupModeToggle();
     setupHeaderButtons();
@@ -454,8 +468,13 @@ async function initializeApp() {
     setupSnippetButtons();
     setupLearningRateSlider();
 
-    // Create initial cell
-    addCell();
+    // Initialize Tab Manager (will create initial cell)
+    if (typeof TabManager !== 'undefined') {
+        TabManager.init();
+    } else {
+        // Fallback: Create initial cell if no TabManager
+        addCell();
+    }
 
     // Initialize Python runtime
     await initializePyodide();
@@ -499,39 +518,50 @@ async function initializeApp() {
 
 async function initializePyodide() {
     const statusEl = document.getElementById('runtimeStatus');
-    const statusText = statusEl.querySelector('.status-text');
+    const statusText = statusEl?.querySelector('.status-text');
 
     try {
-        statusText.textContent = 'Loading Python Runtime...';
+        if (statusText) statusText.textContent = 'Loading Python Runtime...';
 
         AppState.pyodide = await loadPyodide({
             indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/'
         });
 
-        statusText.textContent = 'Installing packages...';
-
-        // Load numpy and scipy
+        if (statusText) statusText.textContent = 'Installing NumPy & SciPy...';
         await AppState.pyodide.loadPackage(['numpy', 'scipy']);
 
-        // Try to load sklearn (may fail gracefully)
+        if (statusText) statusText.textContent = 'Installing Pandas...';
+        try {
+            await AppState.pyodide.loadPackage(['pandas']);
+            console.log('Pandas loaded successfully');
+        } catch (e) {
+            console.warn('Pandas not available:', e.message);
+        }
+
+        if (statusText) statusText.textContent = 'Installing scikit-learn...';
         try {
             await AppState.pyodide.loadPackage(['scikit-learn']);
+            console.log('scikit-learn loaded successfully');
         } catch (e) {
-            console.log('sklearn not available, continuing without it');
+            console.warn('scikit-learn not available:', e.message);
         }
 
         AppState.pyodideReady = true;
-        statusEl.classList.remove('loading');
-        statusEl.classList.add('ready');
-        statusText.textContent = 'Python Ready';
+        if (statusEl) {
+            statusEl.classList.remove('loading');
+            statusEl.classList.add('ready');
+        }
+        if (statusText) statusText.textContent = 'Python Ready';
 
-        console.log('Pyodide initialized successfully');
+        console.log('Pyodide initialized with packages: numpy, scipy, pandas, scikit-learn');
 
     } catch (error) {
         console.error('Failed to initialize Pyodide:', error);
-        statusEl.classList.remove('loading');
-        statusEl.classList.add('error');
-        statusText.textContent = 'Runtime Error';
+        if (statusEl) {
+            statusEl.classList.remove('loading');
+            statusEl.classList.add('error');
+        }
+        if (statusText) statusText.textContent = 'Runtime Error';
     }
 }
 
@@ -727,6 +757,11 @@ function addCell(initialCode = '') {
         editor: editor,
         mode: AppState.mode
     });
+
+    // Register cell with active tab
+    if (typeof TabManager !== 'undefined') {
+        TabManager.addCellToActiveTab(cellId);
+    }
 
     // Setup cell events
     cellEl.querySelector('.cell-btn.run').addEventListener('click', () => runCell(cellId));
